@@ -4,10 +4,10 @@
 
 [Aeris Core](https://github.com/geliopat/Aeris-Core) · [Aeris Resources](https://github.com/geliopat/Aeris-Resources) · [UI specification](https://github.com/geliopat/Aeris-Core/blob/main/docs/UI-SPECIFICATION.md)
 
-Build on Windows with .NET 10 SDK and Windows SDK/WinUI build tools:
+Build on Windows with .NET 11 SDK and Windows SDK/WinUI build tools:
 
 ```powershell
 dotnet build src/Aeris/Aeris.csproj -c Release -p:Platform=x64
 ```
 
-Windows App SDK 1.8.10 is a deliberately pinned initial baseline, subject to actual Windows build and compatibility testing. The installer, IPC and agreed dashboard are not implemented. License decision pending upstream audit.
+Toolchain: .NET SDK 11.0.100 (stable feature band, servicing patches allowed), C# 15, Windows target SDK 10.0.26100.0, Windows App SDK 2.7.0 / WinUI 3. The minimum target OS remains Windows 10 22H2 x64 (19045); compatibility requires actual runtime tests, including on Windows 10 editions outside Microsoft support. Use runtime availability checks for newer Windows APIs. Keep dependencies on verified stable versions and update them through reviewed changes. The installer, IPC and agreed dashboard are not implemented. License decision pending upstream audit.
