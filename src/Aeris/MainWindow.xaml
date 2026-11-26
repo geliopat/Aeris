@@ -1,0 +1,10 @@
+<Window
+    x:Class="Aeris.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Aeris">
+    <StackPanel Padding="24" Spacing="12" VerticalAlignment="Center">
+        <TextBlock Text="Aeris" FontSize="32" HorizontalAlignment="Center" />
+        <TextBlock Text="Development scaffold — networking is not implemented." TextWrapping="Wrap" HorizontalAlignment="Center" />
+    </StackPanel>
+</Window>
