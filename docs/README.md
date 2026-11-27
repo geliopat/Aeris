@@ -10,3 +10,5 @@ The authoritative design baseline is in [Aeris-Core/docs](https://github.com/gel
 - [ROADMAP.md](https://github.com/geliopat/Aeris-Core/blob/main/docs/ROADMAP.md)
 - [TESTING.md](https://github.com/geliopat/Aeris-Core/blob/main/docs/TESTING.md)
 - [COMPATIBILITY.md](https://github.com/geliopat/Aeris-Core/blob/main/docs/COMPATIBILITY.md)
+
+Versioned internal contracts, WinUI 3 extension boundaries and process isolation are defined in the canonical [architecture](https://github.com/geliopat/Aeris-Core/blob/main/docs/ARCHITECTURE.md). The [roadmap](https://github.com/geliopat/Aeris-Core/blob/main/docs/ROADMAP.md) defers the Plugin Manager, public API and SDK until the client and Core are stable.
