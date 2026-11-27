@@ -3,23 +3,66 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Build mode
+        type: choice
+        default: FAST
+        options: [FAST, FULL, CLEAN]
 permissions:
   contents: read
 concurrency:
-  group: client-ci-${{ github.ref }}
+  group: client-ci-${{ github.ref }}-${{ github.event_name }}-${{ inputs.mode || 'FAST' }}
   cancel-in-progress: true
+env:
+  BUILD_MODE: ${{ inputs.mode || 'FAST' }}
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
 jobs:
   windows:
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-dotnet@v6.1.0
+      - name: Start timing
+        run: |
+          "CI_STARTED=$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" >> $env:GITHUB_ENV
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           global-json-file: global.json
-      - uses: actions/cache@v6.1.0
+          check-latest: false
+      - name: Read the effective .NET SDK version
+        id: sdk
+        run: |
+          $sdk = dotnet --version
+          if ($LASTEXITCODE -ne 0 -or $sdk -notmatch '^\d+\.\d+\.\d+$') { throw 'Unexpected .NET SDK version.' }
+          "version=$sdk" >> $env:GITHUB_OUTPUT
+      - name: Restore verified NuGet archives
+        id: archives
+        if: inputs.mode != 'CLEAN'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json') }}
-      - run: dotnet --info
-      - run: dotnet restore src/Aeris/Aeris.csproj -p:Platform=x64
-      - run: dotnet build src/Aeris/Aeris.csproj -c Release -p:Platform=x64 --no-restore
+          path: ${{ runner.temp }}/aeris-nupkgs
+          key: nuget-archives-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.sdk.outputs.version }}-${{ hashFiles('global.json', 'NuGet.config', 'src/Aeris/Aeris.csproj', 'src/Aeris/packages.lock.json', 'tools/ci/build-client.ps1') }}
+      - name: Restore locked dependencies and build
+        id: build
+        env:
+          SAVE_ARCHIVES: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'geliopat/Aeris' }}
+        run: |
+          $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+          "- Environment preparation: $($now - [long]$env:CI_STARTED)s" >> $env:GITHUB_STEP_SUMMARY
+          ./tools/ci/build-client.ps1 -Mode $env:BUILD_MODE -WorkDirectory $env:RUNNER_TEMP -SaveArchives:($env:SAVE_ARCHIVES -eq 'true')
+      - name: Save verified NuGet archives from trusted main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'geliopat/Aeris' && steps.archives.outputs.cache-hit != 'true' && steps.build.outputs.archives_ready == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/aeris-nupkgs
+          key: ${{ steps.archives.outputs.cache-primary-key }}
+      - name: Finish build summary
+        if: always()
+        run: |
+          if ($env:CI_STARTED) {
+            $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+            "- Total workflow steps: $($now - [long]$env:CI_STARTED)s" >> $env:GITHUB_STEP_SUMMARY
+          }

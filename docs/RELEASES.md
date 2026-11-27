@@ -1,3 +1,5 @@
 # Release and Nightly — gates
 
 Independent versions start at 0.1.0. Release requires manual approval and the full Release 1.0.0 gate and applicable core-client checks in the canonical Aeris-Core TESTING.md. Nightly requires actual implemented functionality, passing mandatory CI, and a change since its previous build; use a unique UTC date/run identifier. Never publish unsigned manifests or unsupported driver packages. Current CI restores dependencies and builds the Windows x64 scaffold. UI runtime checks, signing, publication and automatic release workflows are still pending. Add release automation only after signing trust roots, artifact layout, rollback and real Windows validation are established. Preview channel is excluded.
+
+Client CI offers FAST, FULL and CLEAN. It restores the committed NuGet graph in locked mode and builds the Windows x64 client in every mode. FAST and FULL can reuse an exact, verified NuGet archive set. CLEAN obtains packages again. The [canonical CI/CD release contract](https://github.com/geliopat/Aeris-Core/blob/main/docs/RELEASES.md) governs future component artifacts and distribution.
